@@ -1,0 +1,86 @@
+#Please find the below code.
+from collections import OrderedDict
+
+class RecentlyPlayedMusic:
+    def __init__(self, capacity_per_user):
+        self.capacity_per_user = capacity_per_user
+        self.user_playlists = {}
+
+    def play_song(self, user, song):
+        if user not in self.user_playlists:
+            self.user_playlists[user] = OrderedDict()
+        elif song in self.user_playlists[user]:
+            # If the song is already in the playlist, move it to the front (most recently played)
+            self.user_playlists[user].move_to_end(song)
+        else:
+            # If the song is not in the playlist, check if the playlist is full
+            if len(self.user_playlists[user]) >= self.capacity_per_user:
+                # Remove the least recently played song
+                self.user_playlists[user].popitem(last=False)
+            self.user_playlists[user][song] = None
+
+    def get_recently_played(self, user):
+        if user not in self.user_playlists:
+            return []
+        return list(self.user_playlists[user].keys())
+
+# As Per the Example Initial usage:
+store = RecentlyPlayedMusic(capacity_per_user=3)
+
+store.play_song("User1", "S1")
+store.play_song("User1", "S2")
+store.play_song("User1", "S3")
+print(store.get_recently_played("User1"))  # Output: ['S1', 'S2', 'S3']
+
+store.play_song("User1", "S4")
+print(store.get_recently_played("User1"))  # Output: ['S2', 'S3', 'S4']
+
+store.play_song("User1", "S2")
+print(store.get_recently_played("User1"))  # Output: ['S3', 'S4', 'S2']
+
+store.play_song("User1", "S1")
+print(store.get_recently_played("User1"))  # Output: ['S4', 'S2', 'S1']
+
+#-----------------------------------------------------------------------
+#"Please find the below script to test the above logic"
+
+// cypress/e2e/recentlyPlayedStore.cy.js
+
+describe('RecentlyPlayedStore Tests', () => {
+  beforeEach(() => {
+    // Assuming your application
+    cy.visit('https://testvagrant.com/'); // Visit your application's URL
+  });
+
+  it('plays and retrieves songs', () => {
+    // Click a button to play a song
+    cy.get('#playSongButton').click(); 
+    // Play another song
+    cy.get('#playSongButton').click();
+    // Play one more song
+    cy.get('#playSongButton').click(); 
+
+    // Verify that the recently played songs are displayed on the UI
+    cy.get('#recentlyPlayed').should('contain', 'S1');
+    cy.get('#recentlyPlayed').should('contain', 'S2');
+    cy.get('#recentlyPlayed').should('contain', 'S3');
+  });
+
+  it('handles capacity per user', () => {
+    // Simulate playing more songs than the capacity allows
+
+    // Play a song
+    cy.get('#playSongButton').click();
+    // Play another song
+    cy.get('#playSongButton').click();
+    // Play one more song
+    cy.get('#playSongButton').click(); 
+    // Play another song
+    cy.get('#playSongButton').click(); 
+
+    // Verify that the least recently played song is removed
+    cy.get('#recentlyPlayed').should('not.contain', 'S1');
+
+  });
+});
+
